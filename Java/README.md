@@ -87,19 +87,97 @@
   * Properties : 설정 파일로부터 값을 읽을 때 많이 사용됨.
 
 ### Q10. JVM(Java Virtual Machine)의 메모리 구조
+* Class Loader : java compiler에 의해 변환된 바이트 코드(.class)를 Runtime Data Area에 적재하는 기능
+* Execution Engine : Class Loader에 의해 적재된 바이트 코드를 명령어 단위로 읽어서 실행
+* Garbage Collector : 메모리 관리 수행
+* Runtime Data Area : 운영체제에 의해 할당 받는 메모리 영역. Class Loader에서 준비한 데이터들을 보관하는 장소
+  * Method (Static ) Area : JVM이 읽어들인 클래스와 인터페이스에 대한 Runtime Constant Pool, 멤버 변수, 클래스 변수(Static 변수), 생성자와 메소드를 저장하는 공간
+    * Runtime Constant Pool
+      * 클래스와 인터페이스 상수, 메소드와 필드에 대한 모든 레퍼런스를 저장
+      * 이 공간을 통해 해당 메소드나 필드의 실제 메모리 상 주소를 찾아 참조
+    * Method Area/Runtime Constant Pool 사용 기간 및 스레드 공유 범위 
+      * JVM 시작시 생성, 프로그램 종료 시까지 유지
+      * GC 대상
+      * 모든 스레드에서 공유
+  * Stack Area
+    * 각 스레드마다 하나씩 존재, 스레드 시작시 할당
+    * 메소드 정보, 지역변수, 매개변수, 연산 중 발생하는 임시 데이터 저장
+    * 기본 타입 변수는 스택 영역에 직접 값을 가짐
+    * 참조 타입 변수는 힙 영역이나 메소드 영역의 객체 주소를 가짐
+  * PC Register
+    * 현재 수행 중인 JVM 명령 주소를 가짐
+  * Native Method Stack Area
+    * 자바 외 언어로 작성된 네이티브 코드를 위한 Stack
+    * JNI(Java Native Interface)를 통해 호출되는 C/C++ 등의 코드 수행을 위한 Stack
+    * 네이티브 메소드의 매개변수, 지역변수 등을 바이트 코드로 저장
+  * Head Area
+    * JVM이 관리하는 프로그램 상에서 데이터 저장을 위해 런타임 시 동적으로 할당하여 사용하는 영역
+    * new 연산자로 생성된 객체 or 배열을 저장
+    * 여기에 생성된 객체와 배열은 스택 영역의 변수나 다른 객체의 필드에서 참조
+    * 참조하는 변수나 필드가 없으면 GC의 대상이 됨
+    * 힙 영역의 사용기간 및 스레드 공유 범위
+      * 객체가 더이상 사용되지 않거나 명시적 null 선언 시 GC 대상
+      * 모든 스레드에서 공유
+    * Young Generation
+      * 객체가 생성되자마자 저장되는 공간
+      * 시간이 지나 우선순위가 낮아지면 Old 영역으로 옮겨짐
+      * 이 영역에서 객체가 사라질 때 Minor GC 발생
+    * Old Generation
+      * Young Generation에서 넘어온 객체 저장
+      * 객체가 사라질 때 Major GC(Full GC)가 발생
+    * Permanent Generation
+      * Class Loader에 의해 로드된 클래스, 메소드 등에 대한 메타 정보 저장
+      * 리플렉션을 사용하여 동적으로 클래스가 로딩되는 경우 사용
+        * 리플렉션 자주 쓰는 Spring Framework는 이 영역 고려 해야함.
 
-### Q11. GC(Garbage Collection)에 대하여
+### Q13. final vs static
+* final
+  * 변수 선언 : 변수를 상수로 이용하는 경우 사용
+  * 함수 선언 : 오버라이딩이 불가능한 메소드를 정의할 때 사용
+  * 클래스 선언 : 해당 클래스 상속 불가능
+  * 단 한번 초기화 가능
+* static : 
+  * 클래스에 소속된 클래스 변수/메소드를 의미.
 
-### Q12. final vs static
+### Q14. 객체의 직렬화(Serialization)
+* 객체 데이터를 연속적인 데이터로 변형하여 전송 가능하게 함.
+* Serialize 인터페이스 상속으로 직렬화 가능한 클래스로 변경 가능.
 
-### Q13. 객체의 직렬화(Serialization)
+### Q15. String vs StringBuffer vs StringBuilder
+* String
+  * 한번 생성되면 변경 불가능한 immutable 속성을 가지고 있음.
+    * 변경이 적고 참조만 많은 경우
+    * 여러 쓰레드에서 공유하는 경우 안전하게 사용
+  * 문자열 변경시 새로운 객체를 생성하므로 메모리/속도면에서 비효율적임
+  * 읽기 목적이 뚜렷한 경우 사용
+* StringBuffer
+  * mutable class.
+  * 동기화 지원. Thread safe함.
+* StringBuilder
+  * mutable class.
+  * 동기화 지원하지 않음.
+    * StringBuffer보다 속도가 빠름.
+  * jdk 1.5버전 이상에서 성능의 이슈로 string이 stringBuilder로 치환되어 컴파일 됨.
 
-### Q14. String vs StringBuffer vs StringBuilder
+### Q16. 기본 자료형(Primitive data type) vs 참조 자료형(Reference data type)
+* 기본 자료형(Primitive data type)
+  * byte, short, int, long, float, double, char, boolean
+  * 변수에 값 자체가 저장됨.
+  * OS에 따라 자료형의 길이가 별하지 않음.
+  * null 값을 가질 수 없음.
+* 참조 자료형(Reference data type)
+  * class, interface, array, enum
+  * 변수에 객체의 주소값이 저장됨.
+  * null 값을 이용해 해제 할 수 있음.
 
-### Q15. 기본 자료형(Privitive data type) vs 참조 자료형(Reference data type)
+### Q17. JIT(Just In Time) 컴파일러에 대하여
+* bytecode(.class) -> 기계어로 해석할 때 반복되는 내용을 한번만 컴파일함.
+* 프로그램을 실행하는 시점에서 필요한 부분을 즉석에서 컴파일 하는 방식.
+* 실행될 때 최초에 실행됨. 최초 실행시 느려질 수 있음.
+* 컴파일 없이 Interpret만 하는 경우보다 반복적인 작업에서 성능을 높일 수 있음.
 
-### Q16. JIT(Just In Time) 컴파일러에 대하여
-
-### Q17. Java 8 변경사항
-
-
+### Q18. Java 8 변경사항
+* 람다(lamda) 표현식 추가
+* 기본 메서드
+  * 인터페이스에 새 기능이 추가될 경우 이를 상속받는 클래스 모두 구현해야 했으나 기본 메서드 추가로 구현하지 않을 경우 인터페이스에 구현된 메서드 사용.
+* 날짜 API 개선 joda time 참조
